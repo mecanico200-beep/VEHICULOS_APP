@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from io import BytesIO
 
-# Inicializar datos en sesión
+# Inicializar datos en sesión como lista
 if "data" not in st.session_state:
     st.session_state["data"] = []
 
@@ -29,7 +30,10 @@ with st.form("vehiculo_form", clear_on_submit=True):
             "Comentarios": comentario,
             "Repuesto": repuesto.capitalize() if repuesto else "-"
         }
-        st.session_state["data"].append(nuevo_registro)
+        # Guardar como lista de diccionarios
+        registros = st.session_state["data"]
+        registros.append(nuevo_registro)
+        st.session_state["data"] = registros
         st.success(f"✅ Registro agregado: {placa}")
 
 # Mostrar tabla si hay datos
@@ -38,9 +42,12 @@ if st.session_state["data"]:
     st.subheader("📊 Registros actuales")
     st.dataframe(df, use_container_width=True)
 
-    # Botón para descargar Excel
+    # Función para exportar a Excel
     def to_excel(df):
-        return df.to_excel(index=False, engine="openpyxl")
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Vehículos")
+        return output.getvalue()
 
     st.download_button(
         label="⬇️ Descargar Excel",
@@ -50,4 +57,3 @@ if st.session_state["data"]:
     )
 else:
     st.info("👉 Aún no hay registros agregados.")
-
