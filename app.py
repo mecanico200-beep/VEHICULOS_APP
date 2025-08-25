@@ -57,3 +57,38 @@ if st.session_state["data"]:
     )
 else:
     st.info("👉 Aún no hay registros agregados.")
+# --- Sección para editar registros ---
+if st.session_state["data"]:
+    st.subheader("✏️ Editar o eliminar registro")
+
+    df = pd.DataFrame(st.session_state["data"])
+    placas = df["Placa"].tolist()
+    placa_sel = st.selectbox("Selecciona la placa a editar", placas)
+
+    if placa_sel:
+        # Buscar registro seleccionado
+        idx = df[df["Placa"] == placa_sel].index[0]
+        registro = st.session_state["data"][idx]
+
+        with st.form("editar_form"):
+            nueva_marca = st.text_input("Marca", registro["Marca"])
+            nuevo_tecnico = st.text_input("Técnico", registro["Técnico"])
+            nuevo_comentario = st.text_area("Comentarios", registro["Comentarios"])
+            nuevo_repuesto = st.text_input("Repuesto", registro["Repuesto"])
+
+            editar = st.form_submit_button("Guardar cambios")
+            eliminar = st.form_submit_button("❌ Eliminar registro")
+
+            if editar:
+                st.session_state["data"][idx].update({
+                    "Marca": nueva_marca,
+                    "Técnico": nuevo_tecnico,
+                    "Comentarios": nuevo_comentario,
+                    "Repuesto": nuevo_repuesto
+                })
+                st.success("✅ Registro actualizado")
+
+            if eliminar:
+                st.session_state["data"].pop(idx)
+                st.warning("🗑️ Registro eliminado")
+
